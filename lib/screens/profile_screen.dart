@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/gemini_service.dart';
+import '../services/user_data_service.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -37,8 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
     await GeminiService.deleteApiKey();
-    final p = await SharedPreferences.getInstance();
-    await p.clear();
+    await UserDataService.clearLocalCache();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
   }
@@ -211,6 +211,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Icon(Icons.logout_rounded, color: Color(0xFFF87171), size: 18),
                 SizedBox(width: 8),
                 Text("Sign out", style: TextStyle(color: Color(0xFFF87171), fontSize: 15, fontWeight: FontWeight.w600)),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () async {
+              await UserDataService.saveProfile({
+                'user_name': _name,
+                'user_email': _email,
+                'skin_type': _skin,
+                'hair_type': _hair,
+                'gender': _gender,
+                'allergies': _allergies,
+                'conditions': _conditions,
+                'cycle_info': _cycle,
+              });
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Profile synced to cloud!'),
+                backgroundColor: Color(0xFF0D2B1A),
+              ));
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF141414),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF2A2A2A)),
+              ),
+              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(Icons.cloud_upload_rounded, color: Color(0xFF4ADE80), size: 16),
+                SizedBox(width: 8),
+                Text('Sync profile to cloud', style: TextStyle(color: Color(0xFF4ADE80), fontSize: 13)),
               ]),
             ),
           ),

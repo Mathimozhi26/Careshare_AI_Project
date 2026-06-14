@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
+import '../services/user_data_service.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -38,11 +39,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final prefs = await SharedPreferences.getInstance();
-      final name = prefs.getString('user_name') ?? user.displayName ?? '';
-      if (name.isEmpty) {
-        await prefs.setString('user_name', user.displayName ?? '');
-        await prefs.setString('user_email', user.email ?? '');
-      }
+      await prefs.setString('user_name', user.displayName ?? '');
+      await prefs.setString('user_email', user.email ?? '');
+      // Fetch profile from Firestore
+      await UserDataService.fetchAndCacheProfile();
       if (!mounted) return;
       Navigator.pushReplacement(context, PageRouteBuilder(
         pageBuilder: (_, __, ___) => HomeScreen(),

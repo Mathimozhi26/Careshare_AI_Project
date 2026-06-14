@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -57,6 +54,14 @@ class DefaultFirebaseOptions {
     appId: '1:180681583228:android:b64b201a9203f1d960b7f9',
     messagingSenderId: '180681583228',
     projectId: 'careshare-ai',
+    storageBucket: 'careshare-ai.firebasestorage.app',
+  );
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAu7a6glQ8fGRN1Gx4ik6TfTrC9dpJRh1Q',
+    appId: '1:180681583228:web:f2aa22477951a50360b7f9',
+    messagingSenderId: '180681583228',
+    projectId: 'careshare-ai',
+    authDomain: 'careshare-ai.firebaseapp.com',
     storageBucket: 'careshare-ai.firebasestorage.app',
   );
 }

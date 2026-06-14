@@ -214,40 +214,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ]),
             ),
           ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () async {
-              await UserDataService.saveProfile({
-                'user_name': _name,
-                'user_email': _email,
-                'skin_type': _skin,
-                'hair_type': _hair,
-                'gender': _gender,
-                'allergies': _allergies,
-                'conditions': _conditions,
-                'cycle_info': _cycle,
-              });
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Profile synced to cloud!'),
-                backgroundColor: Color(0xFF0D2B1A),
-              ));
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF141414),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2A2A2A)),
-              ),
-              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.cloud_upload_rounded, color: Color(0xFF4ADE80), size: 16),
-                SizedBox(width: 8),
-                Text('Sync profile to cloud', style: TextStyle(color: Color(0xFF4ADE80), fontSize: 13)),
-              ]),
-            ),
-          ),
           const SizedBox(height: 16),
           GestureDetector(
             onTap: _onVersionTap,

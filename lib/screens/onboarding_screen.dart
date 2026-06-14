@@ -34,16 +34,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
-    
-    // Save to Firestore
-    await UserDataService.saveProfile({
-      'skin_type': _skinType,
-      'hair_type': _hairType,
-      'gender': _gender,
-      'allergies': _allergyCtrl.text,
-      'conditions': _condCtrl.text,
-      'cycle_info': _cycle,
-    });
+    await prefs.setString('skin_type', _skinType);
+    await prefs.setString('hair_type', _hairType);
+    await prefs.setString('gender', _gender);
+    await prefs.setString('allergies', _allergyCtrl.text);
+    await prefs.setString('conditions', _condCtrl.text);
+    await prefs.setString('cycle_info', _cycle);
+
+    // Auto save to Firestore
+    try {
+      await UserDataService.saveProfile({
+        'skin_type': _skinType,
+        'hair_type': _hairType,
+        'gender': _gender,
+        'allergies': _allergyCtrl.text,
+        'conditions': _condCtrl.text,
+        'cycle_info': _cycle,
+        'user_name': prefs.getString('user_name') ?? '',
+        'user_email': prefs.getString('user_email') ?? '',
+      });
+    } catch (e) {
+      print('Firestore save error: \$e');
+    }
 
     if (!mounted) return;
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));

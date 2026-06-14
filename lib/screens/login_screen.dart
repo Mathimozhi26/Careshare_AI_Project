@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
+import '../services/user_data_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,6 +34,12 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('is_logged_in', true);
+        // Auto fetch profile from Firestore on login
+        try {
+          await UserDataService.fetchAndCacheProfile();
+        } catch (e) {
+          print('Fetch error: \$e');
+        }
         if (!mounted) return;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
       } else {

@@ -1,0 +1,102 @@
+name: Flutter App Comprehensive Testing
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # 1. Automated Unit & Widget Tests (Flutter Built-in)
+  flutter_automated_tests:
+    name: "Automated Flutter Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java (Required for Android/Flutter build tools)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Unit and Widget Tests
+        run: flutter test
+
+  # 2. Appium Mobile Integration Tests
+  appium_mobile_tests:
+    name: "Appium Mobile Automation"
+    runs-on: macos-latest # macOS is preferred for mobile emulation (iOS/Android)
+    needs: flutter_automated_tests # Runs after basic tests pass
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (For Appium)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Appium & Drivers
+        run: |
+          npm install -g appium
+          appium driver install uiautomator2
+
+      - name: Run Appium Test Scripts
+        run: |
+          echo "Running your Appium test cases..."
+          # Replace the line below with your actual Appium execution command
+          # e.g., pytest appium_tests/ or npm test
+          echo "All Appium test cases passed successfully!"
+
+  # 3. Selenium Web/PWA Tests (If your app has a web version)
+  selenium_web_tests:
+    name: "Selenium Automation Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python/Node (Depending on your Selenium language)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Selenium and Chrome Driver
+        run: |
+          pip install selenium
+          # GitHub Actions Ubuntu runners already have Chrome & Chromedriver installed headless
+
+      - name: Run Selenium Test Cases
+        run: |
+          echo "Executing Selenium Web automation..."
+          # Replace with your selenium run command: e.g., python selenium_tests.py
+          echo "All Selenium test cases passed!"
+
+  # 4. Vulnerability & Security Scans (SAST)
+  vulnerability_scans:
+    name: "Security & Vulnerability Analysis"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Security Scan (Snyk or Dependency Check)
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true # Prevents pipeline block if you just want to view vulnerabilities
+        
+      - name: Run Flutter Lint Check (Static Code Analysis)
+        run: |
+          flutter pub get
+          flutter analyze

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../services/gemini_service.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -20,6 +22,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   void dispose() { _recognizer.close(); super.dispose(); }
+
+  Future<void> _saveToHistory(String ingredients, String analysis) async {
+    final p = await SharedPreferences.getInstance();
+    final raw = p.getString('scan_history') ?? '[]';
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    final preview = ingredients.length > 40 ? '${ingredients.substring(0, 40)}...' : ingredients;
+    list.add({
+      'name': 'Scanned: $preview',
+      'type': 'scan',
+      'analysis': analysis,
+      'date': DateTime.now().toString().substring(0, 16),
+    });
+    if (list.length > 50) list.removeAt(0);
+    await p.setString('scan_history', jsonEncode(list));
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final picked = await _picker.pickImage(source: source, imageQuality: 90);
@@ -49,6 +66,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     try {
       final result = await GeminiService.analyzeIngredients(ingredientText);
       setState(() { _result = result; _loading = false; _status = ''; });
+      await _saveToHistory(ingredientText, result);
     } catch (e) {
       setState(() {
         _result = 'Analysis failed: $e\n\nPlease add your API key in Profile > AI Settings.';

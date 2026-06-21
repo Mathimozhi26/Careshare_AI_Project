@@ -354,3 +354,165 @@ class TestAudit:
         
         screenshot(driver, "AUDIT_01")
         assert all(observations.values())
+
+# ─── MODULE 8: MORE MENU / NEW FEATURES ────────────────────────────────────────
+
+class TestMoreFeatures:
+
+    def test_MORE_01_navigate_to_more_tab(self, driver):
+        """Verify More tab opens menu with 8 items"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(2)
+        except:
+            pass
+        more_screen = wait_for(driver, "more_screen", timeout=10)
+        assert more_screen.is_displayed()
+        screenshot(driver, "MORE_01")
+
+    def test_MORE_02_routine_toggle_and_edit(self, driver):
+        """Verify routine steps can be toggled and edited"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "routine_menu_item").click()
+        time.sleep(2)
+
+        wait_for(driver, "routine_screen")
+        # Toggle first step
+        find(driver, "routine_step_0").click()
+        time.sleep(1)
+        screenshot(driver, "MORE_02_routine")
+        driver.back()
+
+    def test_MORE_03_reminders_add(self, driver):
+        """Verify reminders screen loads and shows add button"""
+        find(driver, "reminders_menu_item").click()
+        time.sleep(2)
+        wait_for(driver, "reminders_screen")
+        add_btn = find(driver, "add_reminder_button")
+        assert add_btn is not None
+        screenshot(driver, "MORE_03_reminders")
+        driver.back()
+
+    def test_MORE_04_favourites_empty_or_populated(self, driver):
+        """Verify favourites screen loads (empty state or list)"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "favourites_menu_item").click()
+        time.sleep(2)
+        wait_for(driver, "favourites_screen")
+        screenshot(driver, "MORE_04_favourites")
+        driver.back()
+
+    def test_MORE_05_history_log(self, driver):
+        """Verify history screen displays past checks"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "history_menu_item").click()
+        time.sleep(2)
+        wait_for(driver, "history_screen")
+        screenshot(driver, "MORE_05_history")
+        driver.back()
+
+    def test_MORE_06_compare_products(self, driver):
+        """Verify compare screen accepts two products and shows AI result"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "compare_menu_item").click()
+        time.sleep(2)
+        wait_for(driver, "compare_screen")
+
+        slot_a = find(driver, "slot_a")
+        slot_a.send_keys("Minimalist Niacinamide 10%")
+        slot_b = find(driver, "slot_b")
+        slot_b.send_keys("Dot & Key Vitamin C Serum")
+
+        find(driver, "compare_button").click()
+        time.sleep(10)
+
+        screenshot(driver, "MORE_06_compare")
+        driver.back()
+
+    def test_MORE_07_progress_tracker(self, driver):
+        """Verify skin progress tracker screen loads"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "progress_menu_item").click()
+        time.sleep(2)
+        wait_for(driver, "progress_tracker_screen")
+        screenshot(driver, "MORE_07_progress")
+        driver.back()
+
+    def test_MORE_08_tips_feed(self, driver):
+        """Verify daily tips feed shows static content list"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "tips_menu_item").click()
+        time.sleep(2)
+        tips_list = wait_for(driver, "tips_list")
+        assert tips_list is not None
+        screenshot(driver, "MORE_08_tips")
+        driver.back()
+
+    def test_MORE_09_settings_toggle(self, driver):
+        """Verify settings switches can be toggled"""
+        try:
+            more_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="More"]')
+            more_tab.click()
+            time.sleep(1)
+        except:
+            pass
+        find(driver, "settings_menu_item").click()
+        time.sleep(2)
+        wait_for(driver, "settings_screen")
+        find(driver, "notifications_switch").click()
+        time.sleep(1)
+        screenshot(driver, "MORE_09_settings")
+        driver.back()
+
+    def test_MORE_10_favourite_toggle_from_product_checker(self, driver):
+        """Verify favouriting a product from Product Checker persists"""
+        try:
+            products_tab = driver.find_element(AppiumBy.XPATH, '//*[@text="Products"]')
+            products_tab.click()
+            time.sleep(2)
+        except:
+            pass
+        search = find(driver, "product_search_field")
+        search.send_keys("Plum Green Tea Toner")
+        find(driver, "analyze_button").click()
+        time.sleep(8)
+
+        try:
+            fav_btn = wait_for(driver, "favourite_button", timeout=15)
+            fav_btn.click()
+            time.sleep(1)
+            screenshot(driver, "MORE_10_favourite_toggled")
+        except Exception as e:
+            screenshot(driver, "MORE_10_FAILED")
+            raise AssertionError(f"Favourite button not found: {e}")

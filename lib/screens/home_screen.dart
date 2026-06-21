@@ -4,6 +4,7 @@ import 'chat_screen.dart';
 import 'product_screen.dart';
 import 'profile_screen.dart';
 import 'scanner_screen.dart';
+import 'more_screen.dart';
 import '../services/gemini_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const ProductScreen(),
       const ScannerScreen(),
       const ChatScreen(),
+      const MoreScreen(),
       const ProfileScreen(),
     ];
     return Scaffold(
@@ -47,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.science_outlined), selectedIcon: Icon(Icons.science_rounded), label: 'Products'),
           NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner_rounded), label: 'Scanner'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_bubble_rounded), label: 'AI Chat'),
+          NavigationDestination(icon: Icon(Icons.apps_outlined), selectedIcon: Icon(Icons.apps_rounded), label: 'More'),
           NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
       ),

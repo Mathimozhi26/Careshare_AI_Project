@@ -37,9 +37,9 @@ class UserDataService {
             await prefs.setString(entry.key, entry.value.toString());
           }
         }
-        print('Profile fetched for: \$_email');
+        print('Profile fetched for: ' + (_email ?? 'unknown'));
       } else {
-        print('No Firestore profile found for: \$_email');
+        print('No Firestore profile found for: ' + (_email ?? 'unknown'));
       }
     } catch (e) {
       print('Firestore fetch error: \$e');
@@ -57,6 +57,35 @@ class UserDataService {
     
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
+  }
+
+  // Save favourites list to Firestore
+  static Future<void> saveFavourites(List<Map<String, String>> favourites) async {
+    if (_email == null) return;
+    await _db.collection('users').doc(_email).set({
+      'favourites': favourites,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+  }
+
+  // Fetch favourites from Firestore
+  static Future<List<Map<String, String>>> fetchFavourites() async {
+    if (_email == null) return [];
+    try {
+      final doc = await _db.collection('users').doc(_email).get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data() as Map<String, dynamic>;
+        final raw = data['favourites'];
+        if (raw is List) {
+          return raw.map((e) => Map<String, String>.from(
+            (e as Map).map((k, v) => MapEntry(k.toString(), v.toString()))
+          )).toList();
+        }
+      }
+    } catch (e) {
+      print('Fetch favourites error: ' + e.toString());
+    }
+    return [];
   }
 
   // Clear local cache on logout

@@ -89,6 +89,15 @@ class GeminiService {
       'Top 5 Indian $category products for this user. For each: name & brand, why it suits their profile, key ingredients, price INR, where to buy.');
   }
 
+  static Future<String> compareProducts(String productA, String productB) async {
+    final ctx = await _userContext();
+    final cleanA = _sanitize(productA, maxLength: 300);
+    final cleanB = _sanitize(productB, maxLength: 300);
+    final system = _identity + ' User profile: ' + ctx + '. Compare two products specifically for this user.';
+    final message = 'Compare these two products for this user: Product A: "' + cleanA + '" Product B: "' + cleanB + '". Give: Product A Summary (key ingredients and effects), Product B Summary (key ingredients and effects), Key Differences (what sets them apart), Better Choice For You (which suits this users skin/hair type and conditions better, and why), Verdict (one clear recommendation). Be concise and personalised.';
+    return await _call(system, message);
+  }
+
   static Future<String> analyzeIngredients(String ingredientText) async {
     final ctx = await _userContext();
     final clean = _sanitize(ingredientText, maxLength: 3000);

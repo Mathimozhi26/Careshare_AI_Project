@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/gemini_service.dart';
+import '../services/user_data_service.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -28,6 +31,8 @@ class _ProductScreenState extends State<ProductScreen> {
       final r = await GeminiService.analyzeProduct(product);
       final level = _detectCompatibility(r);
       setState(() { _result = r; _loading = false; _compatibilityLevel = level; });
+      await _saveToHistory(product, r);
+      await _checkFavourite(product);
     } catch (e) {
       setState(() { _result = 'Analysis failed: $e\n\nPlease add your API key in Profile > Settings.'; _loading = false; _compatibilityLevel = 'error'; });
     }
@@ -38,6 +43,52 @@ class _ProductScreenState extends State<ProductScreen> {
     if (lower.contains('avoid')) return 'avoid';
     if (lower.contains('caution')) return 'caution';
     return 'safe';
+  }
+
+  Future<void> _saveToHistory(String name, String analysis) async {
+    final p = await SharedPreferences.getInstance();
+    final raw = p.getString('scan_history') ?? '[]';
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    list.add({
+      'name': name,
+      'type': 'product',
+      'analysis': analysis,
+      'date': DateTime.now().toString().substring(0, 16),
+    });
+    if (list.length > 50) list.removeAt(0);
+    await p.setString('scan_history', jsonEncode(list));
+  }
+
+  bool _isFavourited = false;
+
+  Future<void> _checkFavourite(String name) async {
+    final p = await SharedPreferences.getInstance();
+    final raw = p.getString('favourites') ?? '[]';
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    setState(() => _isFavourited = list.any((e) => e['name'] == name));
+  }
+
+  Future<void> _toggleFavourite() async {
+    final p = await SharedPreferences.getInstance();
+    final raw = p.getString('favourites') ?? '[]';
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    if (_isFavourited) {
+      list.removeWhere((e) => e['name'] == _product);
+    } else {
+      list.add({'name': _product, 'date': DateTime.now().toString().substring(0, 16)});
+    }
+    await p.setString('favourites', jsonEncode(list));
+    final typedList = list.map((e) => e.map((k, v) => MapEntry(k.toString(), v.toString()))).toList();
+    await UserDataService.saveFavourites(typedList);
+    setState(() => _isFavourited = !_isFavourited);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_isFavourited ? 'Added to favourites' : 'Removed from favourites'),
+        backgroundColor: const Color(0xFF0D2B1A),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
+      ));
+    }
   }
 
   @override
@@ -116,6 +167,11 @@ class _ProductScreenState extends State<ProductScreen> {
                     const SizedBox(height: 4),
                     _compatBadge(_compatibilityLevel),
                   ])),
+                  IconButton(
+                    key: const Key('favourite_button'),
+                    icon: Icon(_isFavourited ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: _isFavourited ? const Color(0xFFC9A84C) : const Color(0xFF555555), size: 22),
+                    onPressed: _toggleFavourite,
+                  ),
                 ]),
                 const Divider(color: Color(0xFF1E1E1E), height: 20),
                 Text(_result, key: const Key('product_analysis_text'), style: const TextStyle(color: Color(0xFFD4B896), fontSize: 13, height: 1.7)),

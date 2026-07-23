@@ -1,0 +1,93 @@
+Test Case ID,Feature Name,Preconditions,Test Steps,Test Data,Expected Result,Actual Result,Pass/Fail,Priority
+AUTH-001,Register user,App is running and backend is reachable,Open Sign Up form; enter valid name/email/password; submit,Name=Alice Smith, Email=alice@example.com, Password=StrongPass123!, SkinType=Normal, Allergies=[], PregnancyStatus=false,New user account is created; response contains JWT token and profile data;, , ,High
+AUTH-002,Login user,Existing user account exists,Open Login form; enter valid credentials; submit,Email=alice@example.com, Password=StrongPass123!,User is authenticated; JWT token returned; app navigates to dashboard;, , ,High
+AUTH-003,JWT token generation,Successful login,Login with valid credentials,Email=alice@example.com, Password=StrongPass123!,Response contains non-empty token and 30d expiry claim;, , ,High
+AUTH-004,Protected profile access,User logged in with valid token,Call /api/auth/profile with Authorization Bearer token,JWT token for logged-in user,Response status 200; profile data returned;, , ,High
+AUTH-005,Logout,User logged in and session stored,Click logout; verify localStorage cleared,No data in localStorage for caresure_user; app returns to login view;, , ,Medium
+AUTH-006,Session persistence in localStorage,User logged in,Refresh browser page,Existing caresure_user remains in localStorage; user stays logged in;, , ,Medium
+AUTH-007,Invalid login handling,App running,Attempt login with wrong password,Email=alice@example.com, Password=WrongPass!,Response status 401; error message shown;, , ,High
+AUTH-008,Duplicate account registration,Existing user present,Attempt to register same email again,Name=Alice Smith, Email=alice@example.com, Password=StrongPass123!,Response status 400; duplicate account error message;, , ,High
+AUTH-009,Missing token requests,No token present,Call /api/auth/profile without Authorization header,,Response status 401; not authorized message;, , ,High
+AUTH-010,Invalid token handling,Invalid JWT,Call /api/auth/profile with Authorization Bearer invalidtoken,Response status 401; token verification failed;, , ,High
+PROFILE-001,Get user profile,User logged in,Open profile page or call GET profile endpoint,Valid JWT token,Profile fields display current user values;, , ,High
+PROFILE-002,Update skin type,User logged in; current skinType Normal,Go to profile; set SkinType to Sensitive; save,SkinType updated in profile and localStorage;, , ,Medium
+PROFILE-003,Update allergies,User logged in,Go to profile; select/deselect allergy options; save,Add Allergy=Salicylic Acid,Profile stores allergy array with selected item;, , ,Medium
+PROFILE-004,Update pregnancy status,User logged in,Toggle pregnancy status; save,Profile shows pregnancyStatus=true;, , ,Medium
+PROFILE-005,Update password,User logged in; current password known,Submit new password via profile update form,New Password=NewStrongPass456,Profile update succeeds; subsequent login with new password works;, , ,High
+PROFILE-006,Verify JWT refresh after profile update,User logged in and profile updated,Update profile and inspect returned token,Response returns refreshed JWT token;, , ,Medium
+PRODUCT-001,Get products list,Backend seeded products exist,Open product catalog or call /api/products,No additional data,Product list returns array of products with expected fields;, , ,High
+PRODUCT-002,Search products by name,Products loaded,Enter search query 'Acne'; verify results,Search=Acne,Only products containing Acne in name/brand/ingredients return;, , ,Medium
+PRODUCT-003,Search products by brand,Products loaded,Enter search query 'PureHeal'; verify results,Search=PureHeal,Only matching brand products return;, , ,Medium
+PRODUCT-004,Search products by ingredients,Products loaded,Enter search query 'Niacinamide'; verify results,Search=Niacinamide,Products with Niacinamide in ingredients return;, , ,Medium
+PRODUCT-005,Filter products by category,Products loaded,Select category 'Haircare'; verify list,Category=Haircare,Only Haircare products display;, , ,Medium
+PRODUCT-006,View product details,Product selected,Click a product item or request /api/products/:id,Valid product ID,Product detail object returns expected fields;, , ,High
+PRODUCT-007,Invalid product ID handling,Invalid product id selected,Request /api/products/invalidid,Invalid ID string or malformed ObjectId,Response status 500 or 404; error handled gracefully;, , ,Medium
+ING-001,Search ingredient by name,Ingredient database seeded,Enter ingredient name 'Niacinamide 10%'; trigger search,Name=Niacinamide 10%,Ingredient detail returns matching compound info;, , ,Medium
+ING-002,Exact match search,Ingredient database seeded,Search exact casing and spacing,Name=Ketoconazole 2%,Exact matching ingredient record returned;, , ,Medium
+ING-003,Partial match search,Ingredient database seeded,Search partial name 'niacin',Name=niacin,Partial search returns fallback or matching ingredient record;, , ,Low
+ING-004,Case-insensitive search,Ingredient database seeded,Search with different casing 'SALICYLIC ACID 2%',Name=SALICYLIC ACID 2%,Lookup returns ingredient despite casing;, , ,Medium
+ING-005,Ingredient not found handling,Unknown ingredient searched,Search name 'UnknownCompoundX',Response returns fallback placeholder object with safe descriptions;, , ,Low
+SCN-001,Barcode scan mode,App scanner active,Select barcode mode and run preset scan,BARCODE_PEARS or BARCODE_HIMALAYA,Scanned result returns a product object with safety data;, , ,Medium
+SCN-002,Generic upload mode,App scanner active,Enter generic upload or custom file path,No actual file needed in mock mode,Scanned result returns dynamic cleanser fallback object;, , ,Medium
+SCN-003,Preset acne scan,App scanner active,Trigger PRESET_ACNE_SPOT preset,BARCODE preset string,Scanned result returns acne gel object;, , ,Medium
+SCN-004,Preset dandruff scan,App scanner active,Trigger PRESET_DANDRUFF preset,BARCODE preset string,Scanned result returns dandruff shampoo object;, , ,Medium
+SCN-005,Preset cica scan,App scanner active,Trigger PRESET_CICA preset,BARCODE preset string,Scanned result returns cica gel object;, , ,Medium
+SCN-006,Invalid upload handling,App scanner active,Submit invalid or empty upload payload,ImageBase64 missing or invalid,Scanner returns error or fallback with validation message;, , ,Low
+SCN-007,Missing image handling,App scanner active,Submit no imageBase64,No image payload,Scanner returns 400 error; no crash;, , ,Low
+SCN-008,Scanned product import to catalog,Scanned result available,Use import feature to add scan result to catalog,Result product object,New product appears in catalog and is selectable;, , ,Medium
+ANL-001,Compatibility score calculation,User profile set,Select product with allergies/pregnancy risk,Profile with PregnancyStatus=false, compatibility score evaluates with safety adjustments;, , ,Medium
+ANL-002,Skin type matching,Profile skinType Sensitive,Choose product with fragrance or sulfates,Score reduces and status changes to Moderate or Danger;, , ,Medium
+ANL-003,Allergy conflict detection,Profile allergies includes Salicylic Acid,Choose product with Salicylic Acid,Suitability score drops by 45 and alert generated;, , ,High
+ANL-004,Pregnancy risk detection,Profile pregnancyStatus true,Choose product containing salicylic acid or ketoconazole,Pregnancy alert displayed and score reduced;, , ,High
+ANL-005,Suitability score adjustments,Product with safetyScore 95 and user risk factors,Apply stage with allergies/pregnancy,Final suitability score reflects deductions and bounded 0-100;, , ,Medium
+ANL-006,Safety warning generation,Product triggers alert conditions,Profile with allergy or pregnancy risk,Alert messages shown on dashboard or product summary;, , ,Medium
+CHT-001,Send chat message,Chat interface open,Type a message and submit,Message='What about retinol?',Chat history includes user message and bot response;, , ,High
+CHT-002,Receive AI response,Chat interface open,Send question expecting fallback or heuristic response,Message='Tell me about niacinamide',Bot responds with clinical guidance;, , ,Medium
+CHT-003,Empty message validation,Chat interface open,Submit blank message,'' (empty),No request sent; validation prevents submission or returns error;, , ,Medium
+CHT-004,Long message handling,Chat interface open,Send long clinical query,Long message text,Chatbot processes without UI breakage and returns response;, , ,Low
+CHT-005,Ingredient safety questions,Chat interface open,Ask about ingredient safety,Message='Is salicylic acid safe?',Bot response mentions safety and warnings;, , ,Medium
+CHT-006,Medical advice questions,Chat interface open,Ask about pregnancy or severe medical hazard,Message='Can I use retinol while pregnant?',Bot issues medical advisory caution;, , ,High
+CHT-007,Fallback response logic,No Gemini API available,Send general query,Message='Hello',Fallback response is returned instead of failure;, , ,Medium
+DB-001,MongoDB connection,Backend configured,Start backend server with valid MONGO_URI,Database connects successfully and server starts;, , ,High
+DB-002,Product schema validation,Attempt invalid product insert,Insert product missing required field name,Validation error thrown; insert rejected;, , ,Medium
+DB-003,Ingredient schema validation,Attempt invalid ingredient insert,Insert ingredient with invalid riskLevel,Validation error thrown; insert rejected;, , ,Medium
+DB-004,User schema validation,Attempt invalid user insert,Insert user missing email or password,Validation error thrown; insert rejected;, , ,High
+DB-005,Seed data loading,Run seeder,Execute node server.js --seed,Database collections reset and seed data inserted;, , ,Medium
+DB-006,Seed data duplication prevention,Re-run seeder,Execute seed command twice,Collections cleared before insert; no duplicates remain;, , ,Medium
+API-001,Register endpoint,Backend running,POST /api/auth/register with valid body,Valid registration payload,201 created and JSON body contains token;, , ,High
+API-002,Login endpoint,Backend running,POST /api/auth/login with valid body,Valid login payload,200 OK and token returned;, , ,High
+API-003,Profile GET endpoint,Authenticated user,GET /api/auth/profile with Bearer token,Valid token,200 OK and user profile returned;, , ,High
+API-004,Profile UPDATE endpoint,Authenticated user,PUT /api/auth/profile with updated fields,Valid token + update body,200 OK and updated profile returned;, , ,High
+API-005,Product list endpoint,Backend running,GET /api/products,No query params,200 OK and array of products returned;, , ,High
+API-006,Product details endpoint,Backend running,GET /api/products/:id with valid ID,Existing product ID,200 OK and product object returned;, , ,High
+API-007,Ingredient search endpoint,Backend running,GET /api/ingredients/search?name=Niacinamide 10%,Search query parameter,200 OK and ingredient details returned or placeholder;, , ,Medium
+API-008,Chat endpoint,Backend running,POST /api/chat/message with message body,Message='Hello',200 OK and response field returned;, , ,Medium
+SEC-001,JWT validation,Authenticated endpoint,Call profile endpoint with valid token,Valid token,200 OK;, , ,High
+SEC-002,Missing token requests,Unauthenticated access,Call profile endpoint with no token,,401 Unauthorized;, , ,High
+SEC-003,Expired token handling,Expired JWT,Call protected endpoint with expired JWT,401 Unauthorized;, , ,High
+SEC-004,Invalid token handling,Malformed JWT,Call protected endpoint with invalid token,401 Unauthorized;, , ,High
+SEC-005,Password hashing verification,Inspect backend DB,Register new user,Stored password hash not equal raw password; bcrypt hash format;, , ,High
+SEC-006,Authorization bypass attempts,Unauthenticated user,Attempt to access /api/auth/profile,No token,401 Unauthorized;, , ,High
+SEC-007,NoSQL injection attempts,Search endpoint,Use payload like {$gt: ''} in search query,Potential attempt,Response should not leak data or execute query improperly;, , ,High
+SEC-008,XSS input validation,Frontend forms,Enter script tags in name or message,<script>alert(1)</script>,UI should not execute script; data sanitized or escaped;, , ,High
+SEC-009,Rate limiting verification,Backend running,Send rapid repeated requests to endpoints,Multiple requests,Server should ideally throttle or respond gracefully;, , ,Medium
+SEC-010,Hardcoded secret default check,Backend config,Start backend without JWT_SECRET,No env JWT_SECRET,Server should fail if security default not allowed;, , ,Medium
+UI-001,Dashboard rendering,App loaded,user logged in,Open dashboard,Dashboard components render without errors;, , ,Medium
+UI-002,Product cards rendering,Catalog loaded,View product panel,Product cards display name/brand/safety score;, , ,Medium
+UI-003,Search functionality,Catalog loaded,Use search bar to filter list,Search valid query,Results update correctly;, , ,Medium
+UI-004,Category filters,Catalog loaded,Select category filter,Category selected,Products filtered by category;, , ,Medium
+UI-005,Scanner workflow,Scanner tab open,Trigger scan and view result,Use preset scan,Scanner process completes and shows result;, , ,Medium
+UI-006,Chatbot interface,Chat tab open,Send and receive messages,Valid chat interaction,Chat interface updates with messages;, , ,Medium
+UI-007,Profile settings page,Profile tab open,View and edit settings,Profile page loads and saves changes;, , ,Medium
+UI-008,Responsive mobile layout,Mobile viewport,set browser width <=640,UI adapts and remains usable;, , ,Low
+UI-009,Responsive tablet layout,Tablet viewport,set browser width <=1024,UI scales and remains usable;, , ,Low
+UI-010,Responsive desktop layout,Desktop viewport,set browser width >1024,UI displays correctly;, , ,Low
+EDGE-001,Empty database,Database cleared,Start backend and query products,No products present,Product list returns empty array or graceful message;, , ,Medium
+EDGE-002,Empty search query,Catalog loaded,Search with empty string,Search=,Full catalog returns or no filter applied;, , ,Low
+EDGE-003,Very long search query,Search bar,Enter 500+ char string,Long search string,App handles input without crash; backend handles request;, , ,Low
+EDGE-004,Unsupported characters,Search or forms,Use emojis/Unicode/SQL chars,Query text=😊🚀!@#$%^&*,App should handle safely without injection or crash;, , ,Medium
+EDGE-005,Network failure,App running,Simulate network disconnect while calling API,Network offline,UI should show error message and not hang;, , ,High
+EDGE-006,Backend unavailable,App running,Point API calls to offline backend,Backend down,App shows failure state and retry logic if available;, , ,High
+EDGE-007,MongoDB unavailable,Backend running no DB,Start backend with unavailable MongoDB,DB connection fails; server exits or error logged;, , ,High
+EDGE-008,Corrupted localStorage data,localStorage has invalid JSON,Refresh app,localStorage value corrupted,App handles parse error gracefully and prompts login;, , ,Medium
+EDGE-009,Concurrent requests,Backend running,Send multiple parallel API calls,Multiple requests,Server responds properly without race conditions;, , ,Medium

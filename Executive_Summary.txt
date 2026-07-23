@@ -1,0 +1,27 @@
+Executive Summary - CareSure AI+ Backend Security Review
+
+Critical findings:
+- Unprotected DB seeder endpoint (/api/products/seed) allows deletion and insertion of data without authentication or authorization. Immediate fix: restrict to admin-only or remove in production.
+- Hardcoded JWT secret fallback present in source and .env.example, enabling token forgery if environment not set. Immediate fix: require strong JWT_SECRET from environment and never include defaults.
+
+High findings:
+- Multiple public endpoints lacking authentication: product listing/detail, ingredient search, scan analyze, chat; consider least-privilege and protect sensitive operations.
+- CORS enabled with default settings (app.use(cors())) allowing all origins; restrict origins and enable credentials securely.
+- External LLM API key (GEMINI_API_KEY) usage and prompt composition may leak user PII to third parties; sanitize and minimize data sent.
+
+Medium findings:
+- User-controlled regex construction (search and ingredient lookup) can cause ReDoS or unexpected queries. Escape regex input or use indexed exact-match searches.
+- Long JWT lifetime (30d) and no revocation/logout mechanism. Reduce expiry and implement refresh/revocation.
+- Large request body limit (10MB) with no rate limiting or upload validation; risk of DoS.
+
+Low findings:
+- No security headers (helmet), verbose request logging to console, and .env.example contains secrets and local MONGO_URI defaults.
+
+Recommended next steps (short):
+1. Immediately disable or protect the seeder endpoint and remove admin defaults from repository.
+2. Enforce environment-only secrets and rotate JWT_SECRET and any API keys.
+3. Add authentication/authorization checks for protected endpoints; implement RBAC for admin operations.
+4. Harden API: restrict CORS, add rate limiting, validate input sizes/types, escape regex usage, add security headers.
+5. Audit third-party data sharing with Gemini and minimize PII; implement server-side content filtering and consent controls.
+
+For full findings with file-level details and remediations, see the full report returned by the review output.
